@@ -1,21 +1,47 @@
-// src/components/HomePage.js
-import React from 'react';
-const HomePage = () => {
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useCookies } from "react-cookie";
+import axios from "axios";
+import { toast } from "react-toastify";
+
+const Home = () => {
+  const navigate = useNavigate();
+  const [cookies, removeCookie] = useCookies([]);
+  const [username, setUsername] = useState("");
+  useEffect(() => {
+    const verifyCookie = async () => {
+      if (!cookies.token) {
+        navigate("/login");
+      }
+      const { data } = await axios.post(
+        "http://localhost:4000",
+        {},
+        { withCredentials: true }
+      );
+      const { status, user } = data;
+      setUsername(user);
+      return status
+        ? toast(`Hello ${user}`, {
+            position: "top-right",
+          })
+        : (removeCookie("token"), navigate("/login"));
+    };
+    verifyCookie();
+  }, [cookies, navigate, removeCookie]);
+  const Logout = () => {
+    removeCookie("token");
+    navigate("/signup");
+  };
   return (
-    <div className="scroll-smooth md:scroll-auto">
-        <div className="relative bg-cover bg-center min-h-screen flex flex-col justify-center items-center" style={{ backgroundImage: "url('https://i.pinimg.com/564x/c5/68/13/c568136fe40419824af608382323c65d.jpg')" }}>
-            <div className="text-black text-center">
-                <h1 className="text-6xl font-bold mb-4">Travel Manager</h1>
-                <p className="text-4xl font-bold mb-8">Explore, Share, and Manage Your Journeys with Ease</p>
-                <div>
-                    <a href="/login" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-2 rounded-full">
-                    Log In / Sign Up
-                    </a>
-                </div>
-            </div>
-        </div>
-     </div>
-);
+    <>
+      <div>
+        <h1>
+          Welcome <span>{username}</span>
+        </h1>
+        <button onClick={Logout}>LOGOUT</button>
+      </div>
+    </>
+  );
 };
 
-export default HomePage;
+export default Home;    
